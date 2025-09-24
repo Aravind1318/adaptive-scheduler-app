@@ -10,6 +10,29 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Custom Background & Theme ---
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-color: #1E1E1E; /* Main background */
+    color: #FFFFFF;
+}
+[data-testid="stSidebar"] {
+    background-color: #2C2C2C; /* Sidebar background */
+}
+[data-testid="stHeader"] {
+    background-color: #2C2C2C; /* Header background */
+}
+[data-testid="stMarkdownContainer"] h1, 
+[data-testid="stMarkdownContainer"] h2, 
+[data-testid="stMarkdownContainer"] h3, 
+[data-testid="stMarkdownContainer"] h4 {
+    color: #FFDD00; /* Headings in yellow */
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
 # --- Title and Description ---
 st.title("⚙ AI-Driven Adaptive Scheduling")
 st.markdown("""
@@ -38,11 +61,9 @@ st.header("2. Run the Scheduling Algorithm")
 if st.button("Generate Adaptive Schedule", type="primary"):
     # --- Input Parsing and Validation ---
     try:
-        # Convert the comma-separated strings to lists
         machine_loads = [int(load.strip()) for load in machine_load_str.split(',') if load.strip()]
         worker_skills = [skill.strip().upper() for skill in worker_skills_str.split(',') if skill.strip()]
 
-        # Check if the number of inputs matches the counts
         if len(machine_loads) > num_machines:
             st.warning(f"Number of machine loads ({len(machine_loads)}) exceeds the number of machines ({num_machines}). Only using the first {num_machines} values.")
             machine_loads = machine_loads[:num_machines]
@@ -57,23 +78,16 @@ if st.button("Generate Adaptive Schedule", type="primary"):
 
     except (ValueError, IndexError):
         st.error("❌ **Invalid input format.** Please ensure machine loads are numbers and skills are single characters, both separated by commas.")
-        st.stop() # Stop the script if there's an error
+        st.stop()
 
     st.success("✅ Schedule is being generated...")
     st.balloons()
 
-    # --- Sample AI-Driven Scheduling Algorithm ---
-    # This is where you would integrate a more complex model.
-    # The current algorithm is a rule-based heuristic:
-    # 1. It prioritizes high-load machines.
-    # 2. It assigns workers based on a skill hierarchy (A > B > C).
-    
-    # Store workers in a dictionary based on their skill for easy access
+    # --- Scheduling Algorithm ---
     workers_by_skill = {'A': [], 'B': [], 'C': []}
     for i, skill in enumerate(worker_skills):
         workers_by_skill[skill].append(f"W{i+1}")
 
-    # Sort machines by load in descending order
     machines = [{"id": i+1, "load": load} for i, load in enumerate(machine_loads)]
     machines.sort(key=lambda x: x["load"], reverse=True)
     
@@ -82,7 +96,6 @@ if st.button("Generate Adaptive Schedule", type="primary"):
     
     for machine in machines:
         assigned_worker = None
-        # Try to assign the best available worker (Skill A, then B, then C)
         if workers_by_skill['A']:
             assigned_worker = workers_by_skill['A'].pop(0)
         elif workers_by_skill['B']:
