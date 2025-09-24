@@ -14,7 +14,7 @@ st.set_page_config(
 page_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background-color: #000000; /* Main background */
+    background-color: #FFFFFF; /* Main background */
     color: #FFFFFF;
 }
 [data-testid="stSidebar"] {
