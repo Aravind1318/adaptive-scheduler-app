@@ -21,7 +21,7 @@ page_bg = """
     background-color: #2C2C2C; /* Sidebar background */
 }
 [data-testid="stHeader"] {
-    background-color: #2C2C2C; /* Header background */
+    background-color: #808080; /* Header background */
 }
 [data-testid="stMarkdownContainer"] h1, 
 [data-testid="stMarkdownContainer"] h2, 
