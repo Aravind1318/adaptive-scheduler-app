@@ -25,7 +25,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Machines")
     num_machines = st.number_input("Number of available machines:", min_value=1, value=10)
-    machine_load_str = st.text_area("Enter machine loads (comma-separated):", "50, 75, 120, 90, 85, 60, 150, 45, 95, 110")
+    machine_load_str = st.text_area("Enter machine loads (comma-separated):", "50, 75, 120, 90, 85, 60, 150, 45, 95")
 
 with col2:
     st.subheader("Manpower")
