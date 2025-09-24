@@ -58,7 +58,7 @@ with col2:
 st.divider()
 
 st.header("2. Run the Scheduling Algorithm")
-if st.button("Generate Adaptive Schedule", type="secondary"):
+if st.button("Generate Adaptive Schedule", type="success"):
     # --- Input Parsing and Validation ---
     try:
         machine_loads = [int(load.strip()) for load in machine_load_str.split(',') if load.strip()]
