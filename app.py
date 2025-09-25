@@ -1,100 +1,92 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
+import joblib
 
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="AI-Driven Adaptive Scheduler",
-    page_icon="⚙",
-    layout="wide"
-)
+st.title("Adaptive Scheduling: AI-driven Machine & Manpower Allocation")
 
-# --- Custom Background & Theme ---
-page_bg = """
-<style>
-[data-testid="stAppViewContainer"] { background-color: #121212; color: #EAEAEA; }
-[data-testid="stSidebar"] { background-color: #1E1E1E; color: #EAEAEA; }
-[data-testid="stHeader"] { background-color: #0A84FF; color: white; }
-[data-testid="stMarkdownContainer"] h1, h2, h3, h4 { color: #0A84FF; font-weight: bold; }
-label, .stTextInput label, .stNumberInput label, .stTextArea label { color: #EAEAEA !important; font-weight: 500; }
-.stTextInput input, .stNumberInput input, textarea { background-color: #1E1E1E !important; color: #EAEAEA !important; border-radius: 8px; border: 1px solid #333333; }
-[data-testid="stDataFrame"] { background-color: #1E1E1E; color: #EAEAEA; }
-[data-testid="stNotification"] { border-radius: 10px; }
-</style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
-
-# --- Title and Description ---
-st.title("⚙ AI-Driven Adaptive Scheduler")
-st.markdown("""
-    Upload your production dataset and let the AI predict machine assignments
-    for new tasks based on historical data.
-""")
-st.divider()
-
-# --- Upload Dataset ---
-st.header("1. Upload your dataset")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-
-if uploaded_file is not None:
+# --- Step 1: Upload Dataset ---
+uploaded_file = st.file_uploader("Upload your scheduling dataset (CSV)", type=["csv"])
+if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    st.success("✅ Dataset loaded successfully!")
-    st.dataframe(df.head())
+    st.write("### Dataset Preview", df.head())
 
-    # --- Select Features and Target ---
-    st.header("2. Train AI Model")
-    target_column = st.selectbox(
-        "Select the target column to predict",
-        df.columns,
-        index=df.columns.get_loc("Machine_Available") if "Machine_Available" in df.columns else 0
-    )
-    feature_columns = st.multiselect(
-        "Select feature columns",
-        [col for col in df.columns if col != target_column],
-        default=[col for col in df.columns if col != target_column]
-    )
+    # Encode categorical variables
+    label_encoders = {}
+    for col in df.select_dtypes(include=['object']).columns:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+        label_encoders[col] = le
 
-    if st.button("Train Model"):
-        if not feature_columns:
-            st.error("Select at least one feature column!")
+    # Define features and target
+    target_col = "Machine_A"  # what we want to predict
+    feature_cols = [col for col in df.columns if col not in ["Job_ID", target_col]]
+    X = df[feature_cols]
+    y = df[target_col]
+
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train classifier
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Save model
+    joblib.dump(model, "scheduling_model.pkl")
+
+    st.success("✅ Model trained successfully!")
+
+    # --- Step 2: Dynamic Scheduling Simulation ---
+    st.subheader("Real-time Task Scheduling")
+
+    # Initialize availability trackers
+    if "machine_loads" not in st.session_state:
+        st.session_state.machine_loads = {m: 0 for m in sorted(df[target_col].unique())}
+    if "manpower_available" not in st.session_state:
+        st.session_state.manpower_available = 50  # assume 50 workers total
+
+    # Task input
+    task_type = st.selectbox("Task Type", label_encoders["Task_Type"].classes_)
+    load_units = st.number_input("Load Units", min_value=10, max_value=500, value=100)
+    manpower_req = st.number_input("Manpower Required", min_value=1, max_value=20, value=5)
+    priority = st.selectbox("Priority", label_encoders["Priority"].classes_)
+    est_time = st.number_input("Estimated Time (hrs)", min_value=1, max_value=24, value=6)
+    deadline = st.number_input("Deadline (hrs)", min_value=1, max_value=48, value=12)
+
+    if st.button("Allocate Task"):
+        # Encode input
+        input_data = pd.DataFrame([[
+            label_encoders["Task_Type"].transform([task_type])[0],
+            load_units,
+            manpower_req,
+            label_encoders["Priority"].transform([priority])[0],
+            est_time,
+            deadline
+        ]], columns=feature_cols)
+
+        # Predict machine probabilities
+        proba = model.predict_proba(input_data)[0]
+        machine_ranking = np.argsort(proba)[::-1]  # descending order
+
+        assigned_machine = None
+        for m in machine_ranking:
+            # Check machine availability & manpower
+            if st.session_state.manpower_available >= manpower_req:
+                assigned_machine = m
+                st.session_state.machine_loads[m] += est_time
+                st.session_state.manpower_available -= manpower_req
+                break
+
+        if assigned_machine is not None:
+            st.success(f"✅ Task allocated to Machine {assigned_machine} | "
+                       f"Manpower Remaining: {st.session_state.manpower_available}")
         else:
-            X = pd.get_dummies(df[feature_columns])
-            y = df[target_column]
+            st.error("❌ No machine/manpower available for this task.")
 
-            model = RandomForestClassifier()
-            model.fit(X, y)
-
-            # Save model & training data in session_state
-            st.session_state["model"] = model
-            st.session_state["X_columns"] = X.columns
-            st.session_state["feature_columns"] = feature_columns
-            st.session_state["df"] = df
-
-            st.success("✅ AI Model trained successfully!")
-
-# --- Predict New Task ---
-if "model" in st.session_state:
-    st.header("3. Predict Machine for a New Task")
-    df = st.session_state["df"]
-    feature_columns = st.session_state["feature_columns"]
-
-    with st.form(key="predict_form"):
-        new_task_data = {}
-        for col in feature_columns:
-            if df[col].dtype == 'object':
-                new_task_data[col] = st.selectbox(col, df[col].unique())
-            else:
-                new_task_data[col] = st.number_input(col, min_value=0)
-
-        submit_pred = st.form_submit_button("Predict Machine")
-        if submit_pred:
-            new_task_df = pd.DataFrame([new_task_data])
-            new_task_encoded = pd.get_dummies(new_task_df)
-            new_task_encoded = new_task_encoded.reindex(columns=st.session_state["X_columns"], fill_value=0)
-
-            prediction = st.session_state["model"].predict(new_task_encoded)[0]
-            st.success(f"✅ Recommended Machine: {prediction}")
-
-st.divider()
-st.markdown("---")
-st.caption("© 2025 Adaptive Scheduling Team. All rights reserved.")
+    # Show current system state
+    st.subheader("Current System Load")
+    st.write("Machine Loads (hrs):", st.session_state.machine_loads)
+    st.write("Available Manpower:", st.session_state.manpower_available)
