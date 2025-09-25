@@ -118,7 +118,7 @@ if st.button("Generate Adaptive Schedule", type="primary"):
         st.stop()
 
     st.success("✅ Schedule is being generated...")
-    st.snow()
+    st.spinner()
 
     # --- Scheduling Algorithm ---
     workers_by_skill = {'A': [], 'B': [], 'C': []}
