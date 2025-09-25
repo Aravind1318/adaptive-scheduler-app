@@ -189,6 +189,12 @@ if submit:
             st.success(f"✅ Allocated to Machine {assigned}")
             st.info(f"Machine {assigned} load now {st.session_state.machine_loads[mkey]} hrs. Manpower left: {st.session_state.manpower_available}")
 
+if st.button("🔄 Reset System"):
+    st.session_state.machine_loads = {str(m): 0 for m in machine_ids}
+    st.session_state.manpower_available = 50  # reset workforce (or set your default)
+    st.session_state.assigned_tasks = {str(m): [] for m in machine_ids}
+    st.success("System has been reset! All loads cleared, manpower restored.")
+
 # -------------------------
 # Display monitoring panel
 # -------------------------
