@@ -118,7 +118,34 @@ if st.button("Generate Adaptive Schedule", type="primary"):
         st.stop()
 
     st.success("✅ Schedule is being generated...")
-    st.spinner()
+    confetti_css = """
+<style>
+@keyframes confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+}
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  top: -10px;
+  left: calc(50% - 5px);
+  animation: confetti 3s linear infinite;
+}
+.confetti:nth-child(2) { left: 30%; background-color: blue; animation-delay: 0.2s; }
+.confetti:nth-child(3) { left: 60%; background-color: green; animation-delay: 0.4s; }
+.confetti:nth-child(4) { left: 80%; background-color: yellow; animation-delay: 0.6s; }
+.confetti:nth-child(5) { left: 40%; background-color: purple; animation-delay: 0.8s; }
+</style>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+"""
+
+st.markdown(confetti_css, unsafe_allow_html=True)
 
     # --- Scheduling Algorithm ---
     workers_by_skill = {'A': [], 'B': [], 'C': []}
