@@ -88,5 +88,10 @@ if uploaded_file:
 
     # Show current system state
     st.subheader("Current System Load")
-    st.write("Machine Loads (hrs):", st.session_state.machine_loads)
-    st.write("Available Manpower:", st.session_state.manpower_available)
+
+# Convert keys & values to safe Python types
+safe_machine_loads = {str(int(k)): int(v) for k, v in st.session_state.machine_loads.items()}
+
+st.json(safe_machine_loads)  # safer for dicts
+st.write("Available Manpower:", int(st.session_state.manpower_available))
+
