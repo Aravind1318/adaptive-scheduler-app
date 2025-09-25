@@ -146,10 +146,10 @@ if st.button("Generate Adaptive Schedule", type="primary"):
       <div class="confetti"></div>
       <div class="confetti"></div>
       """
-      st.markdown(confetti_css, unsafe_allow_html=True)
+    st.markdown(confetti_css, unsafe_allow_html=True)
 
 # --- Scheduling Algorithm continues here ---
-      workers_by_skill = {'A': [], 'B': [], 'C': []}
+    workers_by_skill = {'A': [], 'B': [], 'C': []}
 
 
     # --- Scheduling Algorithm ---
