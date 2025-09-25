@@ -132,7 +132,7 @@ if st.button("Generate Adaptive Schedule", type="primary"):
       background-color: red;
       top: 0;
       left: 50%;
-      animation: confetti 3s linear infinite;
+      animation: confetti 3s linear forwards;
       z-index: 9999;
       }
       .confetti:nth-child(2) { left: 20%; background: blue; animation-delay: 0.2s; }
