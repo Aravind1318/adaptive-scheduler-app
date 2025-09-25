@@ -118,25 +118,28 @@ if st.button("Generate Adaptive Schedule", type="primary"):
         st.stop()
 
     st.success("✅ Schedule is being generated...")
-    confetti_css = """
+
+# 🎉 Confetti animation (custom CSS)
+confetti_css = """
 <style>
 @keyframes confetti {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+  0%   {transform: translateY(0) rotate(0deg); opacity: 1;}
+  100% {transform: translateY(100vh) rotate(720deg); opacity: 0;}
 }
 .confetti {
   position: fixed;
   width: 10px;
   height: 10px;
   background-color: red;
-  top: -10px;
-  left: calc(50% - 5px);
+  top: 0;
+  left: 50%;
   animation: confetti 3s linear infinite;
+  z-index: 9999;
 }
-.confetti:nth-child(2) { left: 30%; background-color: blue; animation-delay: 0.2s; }
-.confetti:nth-child(3) { left: 60%; background-color: green; animation-delay: 0.4s; }
-.confetti:nth-child(4) { left: 80%; background-color: yellow; animation-delay: 0.6s; }
-.confetti:nth-child(5) { left: 40%; background-color: purple; animation-delay: 0.8s; }
+.confetti:nth-child(2) { left: 20%; background: blue; animation-delay: 0.2s; }
+.confetti:nth-child(3) { left: 70%; background: green; animation-delay: 0.4s; }
+.confetti:nth-child(4) { left: 40%; background: yellow; animation-delay: 0.6s; }
+.confetti:nth-child(5) { left: 90%; background: purple; animation-delay: 0.8s; }
 </style>
 <div class="confetti"></div>
 <div class="confetti"></div>
@@ -144,8 +147,11 @@ if st.button("Generate Adaptive Schedule", type="primary"):
 <div class="confetti"></div>
 <div class="confetti"></div>
 """
-
 st.markdown(confetti_css, unsafe_allow_html=True)
+
+# --- Scheduling Algorithm continues here ---
+workers_by_skill = {'A': [], 'B': [], 'C': []}
+
 
     # --- Scheduling Algorithm ---
     workers_by_skill = {'A': [], 'B': [], 'C': []}
