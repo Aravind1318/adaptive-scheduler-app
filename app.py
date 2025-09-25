@@ -40,6 +40,20 @@ page_bg = """
     font-weight: bold;
 }
 
+/* Form Labels (fix grey text issue) */
+label, .stTextInput label, .stNumberInput label, .stTextArea label {
+    color: #EAEAEA !important;
+    font-weight: 500;
+}
+
+/* Input Fields */
+.stTextInput input, .stNumberInput input, textarea {
+    background-color: #1E1E1E !important;
+    color: #EAEAEA !important;
+    border-radius: 8px;
+    border: 1px solid #333333;
+}
+
 /* DataFrame Tables */
 [data-testid="stDataFrame"] {
     background-color: #1E1E1E; 
@@ -52,6 +66,7 @@ page_bg = """
 }
 </style>
 """
+
 
 st.markdown(page_bg, unsafe_allow_html=True)
 
