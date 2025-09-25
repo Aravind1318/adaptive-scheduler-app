@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import random
-import re
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import OneHotEncoder
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Adaptive Scheduler",
+    page_title="AI-Driven Adaptive Scheduler",
     page_icon="⚙",
     layout="wide"
 )
@@ -13,61 +14,16 @@ st.set_page_config(
 # --- Custom Background & Theme ---
 page_bg = """
 <style>
-/* Main background */
-[data-testid="stAppViewContainer"] {
-    background-color: #121212; 
-    color: #EAEAEA;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background-color: #1E1E1E; 
-    color: #EAEAEA;
-}
-
-/* Header */
-[data-testid="stHeader"] {
-    background-color: #0A84FF; 
-    color: white;
-}
-
-/* Headings */
-[data-testid="stMarkdownContainer"] h1, 
-[data-testid="stMarkdownContainer"] h2, 
-[data-testid="stMarkdownContainer"] h3, 
-[data-testid="stMarkdownContainer"] h4 {
-    color: #0A84FF; 
-    font-weight: bold;
-}
-
-/* Form Labels (fix grey text issue) */
-label, .stTextInput label, .stNumberInput label, .stTextArea label {
-    color: #EAEAEA !important;
-    font-weight: 500;
-}
-
-/* Input Fields */
-.stTextInput input, .stNumberInput input, textarea {
-    background-color: #1E1E1E !important;
-    color: #EAEAEA !important;
-    border-radius: 8px;
-    border: 1px solid #333333;
-}
-
-/* DataFrame Tables */
-[data-testid="stDataFrame"] {
-    background-color: #1E1E1E; 
-    color: #EAEAEA;
-}
-
-/* Info / Warning / Success Boxes */
-[data-testid="stNotification"] {
-    border-radius: 10px;
-}
+[data-testid="stAppViewContainer"] { background-color: #121212; color: #EAEAEA; }
+[data-testid="stSidebar"] { background-color: #1E1E1E; color: #EAEAEA; }
+[data-testid="stHeader"] { background-color: #0A84FF; color: white; }
+[data-testid="stMarkdownContainer"] h1, h2, h3, h4 { color: #0A84FF; font-weight: bold; }
+label, .stTextInput label, .stNumberInput label, .stTextArea label { color: #EAEAEA !important; font-weight: 500; }
+.stTextInput input, .stNumberInput input, textarea { background-color: #1E1E1E !important; color: #EAEAEA !important; border-radius: 8px; border: 1px solid #333333; }
+[data-testid="stDataFrame"] { background-color: #1E1E1E; color: #EAEAEA; }
+[data-testid="stNotification"] { border-radius: 10px; }
 </style>
 """
-
-
 st.markdown(page_bg, unsafe_allow_html=True)
 
 # --- Title and Description ---
@@ -90,13 +46,15 @@ with col1:
 with col2:
     st.subheader("Manpower")
     num_manpower = st.number_input("Number of available workers:", min_value=1, value=20)
-    worker_skills_str = st.text_area("Enter worker skills (comma-separated):", "A, B, B, C, A, A, B, C, A, C, B, A, C, B, B, A, C, B, A, A")
+    worker_skills_str = st.text_area("Enter worker skills (comma-separated):", 
+                                     "A, B, B, C, A, A, B, C, A, C, B, A, C, B, B, A, C, B, A, A")
 
 st.divider()
 
-st.header("2. Run the Scheduling Algorithm")
+st.header("2. Run the AI Scheduling Algorithm")
 if st.button("Generate Adaptive Schedule", type="primary"):
-    # --- Input Parsing and Validation ---
+
+    # --- Input Parsing ---
     try:
         machine_loads = [int(load.strip()) for load in machine_load_str.split(',') if load.strip()]
         worker_skills = [skill.strip().upper() for skill in worker_skills_str.split(',') if skill.strip()]
@@ -105,96 +63,89 @@ if st.button("Generate Adaptive Schedule", type="primary"):
             st.warning(f"Number of machine loads ({len(machine_loads)}) exceeds the number of machines ({num_machines}). Only using the first {num_machines} values.")
             machine_loads = machine_loads[:num_machines]
         elif len(machine_loads) < num_machines:
-            st.warning(f"Number of machine loads ({len(machine_loads)}) is less than the number of machines ({num_machines}). The remaining machines will be unassigned.")
+            st.warning(f"Number of machine loads ({len(machine_loads)}) is less than the number of machines ({num_machines}). Remaining machines will be unassigned.")
 
         if len(worker_skills) > num_manpower:
             st.warning(f"Number of worker skills ({len(worker_skills)}) exceeds the number of workers ({num_manpower}). Only using the first {num_manpower} values.")
             worker_skills = worker_skills[:num_manpower]
         elif len(worker_skills) < num_manpower:
-            st.warning(f"Number of worker skills ({len(worker_skills)}) is less than the number of workers ({num_manpower}). The remaining workers will be considered unassigned.")
+            st.warning(f"Number of worker skills ({len(worker_skills)}) is less than the number of workers ({num_manpower}). Remaining workers will be considered unassigned.")
 
     except (ValueError, IndexError):
-        st.error("❌ **Invalid input format.** Please ensure machine loads are numbers and skills are single characters, both separated by commas.")
+        st.error("❌ Invalid input format. Machine loads must be numbers, skills must be A/B/C, separated by commas.")
         st.stop()
 
     st.success("✅ Schedule is being generated...")
 
-    confetti_css = """
-    <style>
-    @keyframes confetti {
-      0%   {transform: translateY(0) rotate(0deg); opacity: 1;}
-      100% {transform: translateY(100vh) rotate(720deg); opacity: 0;}
-    }
-    .confetti {
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      top: 0;
-      left: 50%;
-      animation: confetti 3s linear forwards;
-      z-index: 9999;
-      }
-      .confetti:nth-child(2) { left: 20%; background: blue; animation-delay: 0.2s; }
-      .confetti:nth-child(3) { left: 70%; background: green; animation-delay: 0.4s; }
-      .confetti:nth-child(4) { left: 40%; background: yellow; animation-delay: 0.6s; }
-      .confetti:nth-child(5) { left: 90%; background: purple; animation-delay: 0.8s; }
-      </style>
-      <div class="confetti"></div>
-      <div class="confetti"></div>
-      <div class="confetti"></div>
-      <div class="confetti"></div>
-      <div class="confetti"></div>
-      """
-    st.markdown(confetti_css, unsafe_allow_html=True)
-
-# --- Scheduling Algorithm continues here ---
-    workers_by_skill = {'A': [], 'B': [], 'C': []}
-
-
-    # --- Scheduling Algorithm ---
-    workers_by_skill = {'A': [], 'B': [], 'C': []}
-    for i, skill in enumerate(worker_skills):
-        workers_by_skill[skill].append(f"W{i+1}")
-
-    machines = [{"id": i+1, "load": load} for i, load in enumerate(machine_loads)]
-    machines.sort(key=lambda x: x["load"], reverse=True)
-    
-    assigned_schedule = []
-    unassigned_workers = workers_by_skill['A'] + workers_by_skill['B'] + workers_by_skill['C']
-    
-    for machine in machines:
-        assigned_worker = None
-        if workers_by_skill['A']:
-            assigned_worker = workers_by_skill['A'].pop(0)
-        elif workers_by_skill['B']:
-            assigned_worker = workers_by_skill['B'].pop(0)
-        elif workers_by_skill['C']:
-            assigned_worker = workers_by_skill['C'].pop(0)
-            
-        if assigned_worker:
-            worker_id = re.sub(r'[^0-9]', '', assigned_worker)
-            assigned_schedule.append({
-                "Machine ID": machine["id"],
-                "Production Load": machine["load"],
-                "Assigned Worker ID": int(worker_id),
-                "Worker Skill": worker_skills[int(worker_id)-1]
+    # --- Generate Simulated Dataset for AI Model ---
+    all_workers = [f"W{i+1}" for i in range(len(worker_skills))]
+    data = []
+    for m_id, load in enumerate(machine_loads, start=1):
+        for i, skill in enumerate(worker_skills):
+            if skill == 'A':
+                productivity = load + random.randint(5, 15)
+            elif skill == 'B':
+                productivity = load + random.randint(0, 10)
+            else:
+                productivity = load + random.randint(-5, 5)
+            data.append({
+                'Machine Load': load,
+                'Worker Skill': skill,
+                'Worker': all_workers[i],
+                'Productivity': productivity
             })
-            unassigned_workers.remove(assigned_worker)
-            
+
+    df = pd.DataFrame(data)
+
+    # --- Train AI Model ---
+    X = pd.get_dummies(df[['Machine Load', 'Worker Skill']])
+    y = df['Worker']
+    model = RandomForestClassifier()
+    model.fit(X, y)
+
+    # --- Predict Best Worker for Each Machine ---
+    assigned_schedule = []
+    used_workers = set()
+
+    for load in machine_loads:
+        predictions = []
+        for i, skill in enumerate(worker_skills):
+            if all_workers[i] in used_workers:
+                continue
+            x_input = pd.DataFrame([{
+                'Machine Load': load,
+                'Worker Skill_A': 1 if skill=='A' else 0,
+                'Worker Skill_B': 1 if skill=='B' else 0,
+                'Worker Skill_C': 1 if skill=='C' else 0
+            }])
+            pred = model.predict(x_input)[0]
+            # Simulate predicted productivity from dataset
+            productivity = df[(df['Machine Load']==load) & (df['Worker']==pred)]['Productivity'].values[0]
+            predictions.append((pred, skill, productivity))
+        if predictions:
+            # Pick worker with highest predicted productivity
+            best_worker, best_skill, best_prod = max(predictions, key=lambda x: x[2])
+            machine_id = machine_loads.index(load)+1
+            assigned_schedule.append({
+                "Machine ID": machine_id,
+                "Production Load": load,
+                "Assigned Worker ID": best_worker,
+                "Worker Skill": best_skill,
+                "Predicted Productivity": best_prod
+            })
+            used_workers.add(best_worker)
+
     # --- Display Results ---
-    st.markdown("### Generated Schedule")
-    
+    st.markdown("### Generated AI Schedule")
     if assigned_schedule:
-        df = pd.DataFrame(assigned_schedule)
-        st.dataframe(df.set_index("Machine ID"), use_container_width=True)
+        df_schedule = pd.DataFrame(assigned_schedule)
+        st.dataframe(df_schedule.set_index("Machine ID"), use_container_width=True)
     else:
         st.warning("No schedule could be generated. Check your input data.")
-        
-    st.markdown("---")
-    st.info(f"**Summary:** {len(assigned_schedule)} machines were assigned. {len(unassigned_workers)} workers are unassigned.")
-    
-st.divider()
 
+    st.markdown("---")
+    st.info(f"**Summary:** {len(assigned_schedule)} machines were assigned. {len(worker_skills) - len(used_workers)} workers are unassigned.")
+
+st.divider()
 st.markdown("---")
 st.caption("© 2025 Adaptive Scheduling Team. All rights reserved.")
