@@ -13,24 +13,46 @@ st.set_page_config(
 # --- Custom Background & Theme ---
 page_bg = """
 <style>
+/* Main background */
 [data-testid="stAppViewContainer"] {
-    background-color: #FFFFFF; /* Main background */
-    color: #FFFFFF;
+    background-color: #121212; 
+    color: #EAEAEA;
 }
+
+/* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: #2C2C2C; /* Sidebar background */
+    background-color: #1E1E1E; 
+    color: #EAEAEA;
 }
+
+/* Header */
 [data-testid="stHeader"] {
-    background-color: #808080; /* Header background */
+    background-color: #0A84FF; 
+    color: white;
 }
+
+/* Headings */
 [data-testid="stMarkdownContainer"] h1, 
 [data-testid="stMarkdownContainer"] h2, 
 [data-testid="stMarkdownContainer"] h3, 
 [data-testid="stMarkdownContainer"] h4 {
-    color: #FFDD00; /* Headings in yellow */
+    color: #0A84FF; 
+    font-weight: bold;
+}
+
+/* DataFrame Tables */
+[data-testid="stDataFrame"] {
+    background-color: #1E1E1E; 
+    color: #EAEAEA;
+}
+
+/* Info / Warning / Success Boxes */
+[data-testid="stNotification"] {
+    border-radius: 10px;
 }
 </style>
 """
+
 st.markdown(page_bg, unsafe_allow_html=True)
 
 # --- Title and Description ---
