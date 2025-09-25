@@ -43,8 +43,16 @@ if uploaded_file is not None:
 
     # --- Select Features and Target ---
     st.header("2. Train AI Model")
-    target_column = st.selectbox("Select the target column to predict", df.columns, index=df.columns.get_loc("Machine_Available") if "Machine_Available" in df.columns else 0)
-    feature_columns = st.multiselect("Select feature columns", [col for col in df.columns if col != target_column], default=[col for col in df.columns if col != target_column])
+    target_column = st.selectbox(
+        "Select the target column to predict",
+        df.columns,
+        index=df.columns.get_loc("Machine_Available") if "Machine_Available" in df.columns else 0
+    )
+    feature_columns = st.multiselect(
+        "Select feature columns",
+        [col for col in df.columns if col != target_column],
+        default=[col for col in df.columns if col != target_column]
+    )
 
     if st.button("Train Model"):
         if not feature_columns:
@@ -55,26 +63,37 @@ if uploaded_file is not None:
 
             model = RandomForestClassifier()
             model.fit(X, y)
+
+            # Save model & training data in session_state
+            st.session_state["model"] = model
+            st.session_state["X_columns"] = X.columns
+            st.session_state["feature_columns"] = feature_columns
+            st.session_state["df"] = df
+
             st.success("✅ AI Model trained successfully!")
 
-            # --- Predict New Task ---
-            st.header("3. Predict Machine for a New Task")
-            with st.form(key="predict_form"):
-                new_task_data = {}
-                for col in feature_columns:
-                    if df[col].dtype == 'object':
-                        new_task_data[col] = st.selectbox(col, df[col].unique())
-                    else:
-                        new_task_data[col] = st.number_input(col, min_value=0)
+# --- Predict New Task ---
+if "model" in st.session_state:
+    st.header("3. Predict Machine for a New Task")
+    df = st.session_state["df"]
+    feature_columns = st.session_state["feature_columns"]
 
-                submit_pred = st.form_submit_button("Predict Machine")
-                if submit_pred:
-                    new_task_df = pd.DataFrame([new_task_data])
-                    new_task_encoded = pd.get_dummies(new_task_df)
-                    new_task_encoded = new_task_encoded.reindex(columns=X.columns, fill_value=0)
+    with st.form(key="predict_form"):
+        new_task_data = {}
+        for col in feature_columns:
+            if df[col].dtype == 'object':
+                new_task_data[col] = st.selectbox(col, df[col].unique())
+            else:
+                new_task_data[col] = st.number_input(col, min_value=0)
 
-                    prediction = model.predict(new_task_encoded)[0]
-                    st.success(f"✅ Recommended Machine: {prediction}")
+        submit_pred = st.form_submit_button("Predict Machine")
+        if submit_pred:
+            new_task_df = pd.DataFrame([new_task_data])
+            new_task_encoded = pd.get_dummies(new_task_df)
+            new_task_encoded = new_task_encoded.reindex(columns=st.session_state["X_columns"], fill_value=0)
+
+            prediction = st.session_state["model"].predict(new_task_encoded)[0]
+            st.success(f"✅ Recommended Machine: {prediction}")
 
 st.divider()
 st.markdown("---")
