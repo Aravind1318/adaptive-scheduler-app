@@ -22,7 +22,7 @@ if uploaded_file:
         label_encoders[col] = le
 
     # Define features and target
-    target_col = "Machine_A"  # what we want to predict
+    target_col = "Machine_Available"  # what we want to predict
     feature_cols = [col for col in df.columns if col not in ["Job_ID", target_col]]
     X = df[feature_cols]
     y = df[target_col]
