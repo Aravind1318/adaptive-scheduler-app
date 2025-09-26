@@ -57,7 +57,7 @@ if "machine_loads" not in st.session_state:
     # store as dict with string keys for safe JSON
     st.session_state.machine_loads = {str(m): 0 for m in machine_ids}
 if "manpower_available" not in st.session_state:
-    st.session_state.manpower_available = 50  # default total workforce
+    st.session_state.manpower_available = 100  # default total workforce
 if "assigned_tasks" not in st.session_state:
     st.session_state.assigned_tasks = {str(m): [] for m in machine_ids}
 
@@ -191,7 +191,7 @@ if submit:
 
 if st.button("🔄 Reset System"):
     st.session_state.machine_loads = {str(m): 0 for m in machine_ids}
-    st.session_state.manpower_available = 50  # reset workforce (or set your default)
+    st.session_state.manpower_available = 100  # reset workforce (or set your default)
     st.session_state.assigned_tasks = {str(m): [] for m in machine_ids}
     st.success("System has been reset! All loads cleared, manpower restored.")
 
